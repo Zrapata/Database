@@ -6,82 +6,74 @@
 //
 
 import SwiftUI
-import CoreData
 
 struct ContentView: View {
-    @Environment(\.managedObjectContext) private var viewContext
-
-    @FetchRequest(
-        sortDescriptors: [NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)],
-        animation: .default)
-    private var items: FetchedResults<Item>
+    @State private var selectedWorkspace: WorkSpace?
+    @State private var showSettings = false
+    
+    @Environment(\.managedObjectContext) var viewContext
+    
+    @SceneStorage("selected_table") var tableID: TableIDType = defatultTableID
+    @SceneStorage("selected_projejct") var projectID: ProjectIDType = defatultProjectID
+    
+    @State private var selectedSettings: SettingsCathegories? = nil
+    
+    @AppStorage("selected_workspace") var workspaceID: URL = emptyCoreDataURL
+    
 
     var body: some View {
         NavigationView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp!, formatter: itemFormatter)")
-                    } label: {
-                        Text(item.timestamp!, formatter: itemFormatter)
+            TableSelectorView()
+                .toolbar {
+                    ToolbarItem(placement: .navigation) {
+                        Button(action: {
+                            self.showSettings.toggle()
+                        }) {
+                            Label("Settings", systemImage: "gear")
+                        }
                     }
                 }
-                .onDelete(perform: deleteItems)
-            }
-            .toolbar {
-#if os(iOS)
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-#endif
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
-                }
-            }
-            Text("Select an item")
+            TableDetailView(currentTableID: tableID, context: viewContext)
         }
-    }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(context: viewContext)
-            newItem.timestamp = Date()
-
-            do {
-                try viewContext.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+        .onContinueUserActivity(settingsSelectionUserActivityType, perform: { activity in
+            if let settingPanel = activity.userInfo?["settings_panel"] as? String,
+            let panel = SettingsCathegories(rawValue: settingPanel) {
+                selectedSettings = panel
+                self.showSettings = true
+            }
+            print(activity.userInfo)
+//            selectedSettings = activity.userInfo?["settings_panel"] as? SettingsCathegories
+//            self.showSettings = true
+        })
+        .sheet(isPresented: $showSettings) {
+            SettingsView(selectedCathegory: $selectedSettings)
+        }
+        .onAppear {
+            if workspaceID == emptyCoreDataURL {
+                makeWorkspaceSelection()
             }
         }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            offsets.map { items[$0] }.forEach(viewContext.delete)
-
-            do {
-                try viewContext.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+        .onChange(of: tableID) { newValue in
+            defatultTableID = newValue
+        }
+        .onChange(of: projectID) { newValue in
+            defatultProjectID = newValue
+        }
+        .onChange(of: workspaceID) { newValue in
+            if newValue == emptyCoreDataURL {
+                makeWorkspaceSelection()
+            } else if selectedSettings == .workspaces {
+                selectedSettings = nil
             }
         }
     }
+    
+    private func makeWorkspaceSelection() {
+        self.showSettings = true
+        self.selectedSettings = .workspaces
+    }
+
 }
-
-private let itemFormatter: DateFormatter = {
-    let formatter = DateFormatter()
-    formatter.dateStyle = .short
-    formatter.timeStyle = .medium
-    return formatter
-}()
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {

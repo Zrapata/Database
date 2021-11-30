@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Purchases
 
 @main
 struct DatabaseApp: App {
@@ -16,5 +17,16 @@ struct DatabaseApp: App {
             ContentView()
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
         }
+    }
+    
+    init() {
+        setupRevenueCat()
+    }
+    
+    func setupRevenueCat() {
+        #if DEBUG
+        Purchases.logLevel = .debug
+        #endif
+        Purchases.configure(withAPIKey: "LmvmvoawFtkeDRKqUrJnAVZWJkJDvcBG")
     }
 }

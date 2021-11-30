@@ -13,9 +13,34 @@ struct PersistenceController {
     static var preview: PersistenceController = {
         let result = PersistenceController(inMemory: true)
         let viewContext = result.container.viewContext
-        for _ in 0..<10 {
-            let newItem = Item(context: viewContext)
-            newItem.timestamp = Date()
+        
+        let workspaceOne = WorkSpace(context: viewContext)
+        workspaceOne.storedItemIconName = "cirlce.fill"
+        workspaceOne.storedItemName = "Sample Workspace"
+        
+        let workspaceTwo = WorkSpace(context: viewContext)
+        workspaceTwo.storedItemIconName = "square.fill"
+        workspaceTwo.storedItemName = "Sample Workspace Two"
+        
+        for i in 0..<4 {
+            let newProject = Project(context: viewContext)
+            newProject.storedItemIconName = "\(i).circle"
+            newProject.storedItemName = "Project #\(i)"
+            
+            for j in 0..<2 {
+                let newTable = Tables(context: viewContext)
+                newTable.storedItemName = "\(i) - \(j) Table"
+                newTable.storedItemIconName = "\(i).square"
+                newTable.project = newProject
+            }
+            
+            if i < 2 {
+                newProject.workspace = workspaceOne
+            } else {
+                newProject.workspace = workspaceTwo
+            }
+//            let newItem = Item(context: viewContext)
+//            newItem.timestamp = Date()
         }
         do {
             try viewContext.save()
@@ -30,11 +55,23 @@ struct PersistenceController {
 
     let container: NSPersistentCloudKitContainer
 
-    init(inMemory: Bool = false) {
+    init(inMemory: Bool = false, from target: String = "main_app") {
         container = NSPersistentCloudKitContainer(name: "Database")
         if inMemory {
             container.persistentStoreDescriptions.first!.url = URL(fileURLWithPath: "/dev/null")
         }
+        
+        container.viewContext.name = "view_context"
+        container.viewContext.transactionAuthor = target
+        
+        let storeURL = URL.storeURL(for: "group.com.zrapata.personal.Database", with: "SharedDatabase")
+        let storeDescriptors = NSPersistentStoreDescription(url: storeURL)
+        storeDescriptors.url = storeURL
+        storeDescriptors.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
+        storeDescriptors.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
+        
+        container.persistentStoreDescriptions = [storeDescriptors]
+        
         container.loadPersistentStores(completionHandler: { (storeDescription, error) in
             if let error = error as NSError? {
                 // Replace this implementation with code to handle the error appropriately.
@@ -51,5 +88,15 @@ struct PersistenceController {
                 fatalError("Unresolved error \(error), \(error.userInfo)")
             }
         })
+    }
+    
+    enum FetchableEntities {
+        case Project
+    }
+}
+
+extension PersistenceController {
+    static var fetchedProjectRequest: NSFetchRequest<Project> {
+        Project.fetchRequest()
     }
 }

@@ -1,9 +1,54 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="1" systemVersion="11A491" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="true" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="19461" systemVersion="21C5039b" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="YES" userDefinedModelVersionIdentifier="">
+    <entity name="DatabaseItem" representedClassName="DatabaseItem" syncable="YES" codeGenerationType="class">
+        <attribute name="storedData" optional="YES" attributeType="Binary"/>
+        <relationship name="field" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FieldItem" inverseName="item" inverseEntity="FieldItem"/>
+        <relationship name="record" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="RecordItem" inverseName="fieldData" inverseEntity="RecordItem"/>
+    </entity>
+    <entity name="FieldItem" representedClassName="FieldItem" parentEntity="LabelItem" syncable="YES" codeGenerationType="class">
+        <attribute name="defaultValue" optional="YES" attributeType="Binary"/>
+        <attribute name="isHidden" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="storedPosition" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="storedSize" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="storedType" optional="YES" attributeType="String"/>
+        <relationship name="defaultInTable" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Tables" inverseName="fieldForName" inverseEntity="Tables"/>
+        <relationship name="item" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="DatabaseItem" inverseName="field" inverseEntity="DatabaseItem"/>
+        <relationship name="table" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Tables" inverseName="fields" inverseEntity="Tables"/>
+    </entity>
     <entity name="Item" representedClassName="Item" syncable="YES" codeGenerationType="class">
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
     </entity>
+    <entity name="LabelItem" representedClassName="LabelItem" isAbstract="YES" syncable="YES" codeGenerationType="class">
+        <attribute name="storedItemIconName" optional="YES" attributeType="String"/>
+        <attribute name="storedItemName" optional="YES" attributeType="String"/>
+    </entity>
+    <entity name="Project" representedClassName="Project" parentEntity="LabelItem" syncable="YES" codeGenerationType="class">
+        <relationship name="tables" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Tables" inverseName="project" inverseEntity="Tables"/>
+        <relationship name="workspace" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="WorkSpace" inverseName="projects" inverseEntity="WorkSpace"/>
+    </entity>
+    <entity name="RecordItem" representedClassName="RecordItem" syncable="YES" codeGenerationType="class">
+        <attribute name="storedID" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="storedPosition" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <relationship name="fieldData" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="DatabaseItem" inverseName="record" inverseEntity="DatabaseItem"/>
+        <relationship name="table" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Tables" inverseName="records" inverseEntity="Tables"/>
+    </entity>
+    <entity name="Tables" representedClassName="Tables" parentEntity="LabelItem" syncable="YES" codeGenerationType="class">
+        <relationship name="fieldForName" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FieldItem" inverseName="defaultInTable" inverseEntity="FieldItem"/>
+        <relationship name="fields" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="FieldItem" inverseName="table" inverseEntity="FieldItem"/>
+        <relationship name="project" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Project" inverseName="tables" inverseEntity="Project"/>
+        <relationship name="records" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="RecordItem" inverseName="table" inverseEntity="RecordItem"/>
+    </entity>
+    <entity name="WorkSpace" representedClassName="WorkSpace" parentEntity="LabelItem" syncable="YES" codeGenerationType="class">
+        <relationship name="projects" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Project" inverseName="workspace" inverseEntity="Project"/>
+    </entity>
     <elements>
+        <element name="DatabaseItem" positionX="-36" positionY="81" width="128" height="74"/>
+        <element name="FieldItem" positionX="-45" positionY="36" width="128" height="149"/>
         <element name="Item" positionX="-63" positionY="-18" width="128" height="44"/>
+        <element name="LabelItem" positionX="-54" positionY="0" width="128" height="59"/>
+        <element name="Project" positionX="-63" positionY="-9" width="128" height="59"/>
+        <element name="RecordItem" positionX="-18" positionY="90" width="128" height="14"/>
+        <element name="Tables" positionX="-54" positionY="18" width="128" height="89"/>
+        <element name="WorkSpace" positionX="-54" positionY="9" width="128" height="44"/>
     </elements>
 </model>
